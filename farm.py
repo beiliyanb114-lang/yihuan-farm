@@ -79,7 +79,7 @@ def snap(tag: str) -> str:
 def load_config(path=CFG_PATH) -> dict:
     if not os.path.exists(path):
         raise SystemExit(
-            f"没有找到 {path}\n先跑一遍标定：  python calibrate.py")
+            f"还没标定过（找不到 {path}）\n\n第一次用要先标定一遍：双击文件夹里的「标定.bat」\n标完再双击「开始刷.bat」。")
     with open(path, encoding="utf-8") as f:
         cfg = json.load(f)
     # 模板路径可能是相对的（tpl/xxx.png），按配置文件所在目录补全，
@@ -610,6 +610,8 @@ def main() -> int:
     if _orig_cfg != args.config:
         sys.argv = [args.config if a == _orig_cfg else a for a in sys.argv]
 
+    cfg = load_config(args.config)
+
     # 开跑前问一句刷多少轮（提权后的子进程带 YHF_LAUNCHED，不再重复问）
     if not (args.list_points or args.probe or args.dry_run or args.rounds):
         if not os.environ.get("YHF_LAUNCHED") and sys.stdin and sys.stdin.isatty():
@@ -617,7 +619,6 @@ def main() -> int:
             if args.rounds:
                 rewrite_argv_rounds(args.rounds)
 
-    cfg = load_config(args.config)
 
     def perm_problem() -> bool:
         """游戏是管理员、而脚本不是 -> 点击会被 UIPI 丢掉。"""
