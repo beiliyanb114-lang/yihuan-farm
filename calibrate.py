@@ -17,6 +17,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+import time
 import tkinter as tk
 from tkinter import messagebox
 
@@ -45,6 +46,16 @@ STEPS = [
     ("back", "⑤ 店里左上角的返回箭头（收满了用它提前退出）", "button"),
     ("claim", "⑥ 结算界面右边那个「领取」按钮", "button"),
 ]
+
+# 这一步要框的东西在哪个界面（用户需要按 R 切过去截）
+SCREEN_HINT = {
+    "entry": "主城",
+    "lvl": "店长特供菜单",
+    "begin": "店长特供菜单",
+    "hammer": "店里",
+    "back": "店里",
+    "claim": "结算界面",
+}
 
 DEFAULT_CONFIG = {
     "_说明": "这个文件由 calibrate.py 生成，坐标是屏幕像素（左上角为 0,0）。可以直接手改。",
@@ -110,8 +121,11 @@ def build_config(marks: dict[str, dict], shot_size: tuple[int, int],
     cfg["round"]["enter_sequence"] = enter
     # 锤子模式：反复点那个点
     if has("hammer"):
-        cfg["round"]["serve"] = {"point": "hammer", "interval": 1.35, "max_clicks": 10,
-                                   "jitter": 4, "click_hold": 0.05, "keys": [], "key_every": 5.0}
+        # 注意：这里的键名要和 farm.py 读的一致（target_hits / max_tries），
+        # 别写成 max_clicks，否则标定出来的配置跟文档对不上。
+        cfg["round"]["serve"] = {"point": "hammer", "target_hits": 3, "max_tries": 18,
+                                   "interval": 0.9, "jitter": 4, "click_hold": 0.05,
+                                   "keys": [], "key_every": 5.0}
     cfg["round"]["start_sequence"] = start
     cfg["round"]["end_sequence"] = end
     return cfg
@@ -187,6 +201,13 @@ class Calibrator:
 
     # --- 截图 ---
     def retake(self):
+        # 先把自己藏起来，否则截到的是标定窗口本身
+        self.root.withdraw()
+        try:
+            self.root.update_idletasks()
+        except Exception:
+            pass
+        time.sleep(0.35)
         try:
             arr, win = shoot(self.cfg)
         except Exception as e:
@@ -322,6 +343,9 @@ class Calibrator:
         self.status.config(text=f"请框住 {label}")
         tip = ("按住左键拖出一个框；框中心 = 以后点击的位置" if kind == "button"
                else "按住左键拖出一个区域")
+        where = SCREEN_HINT.get(key, "")
+        if where:
+            tip = f"{tip}　【{where}看不到就切到游戏，回来按 R 重新截图】"
         self.hint.config(text=f"{tip} ｜ 右键/Esc 跳过 ｜ Backspace 撤销 ｜ R 重新截图 ｜ S 保存")
         self.last_key = key
 
