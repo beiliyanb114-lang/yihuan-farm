@@ -1,0 +1,16 @@
+# 自己跑出来的东西，别传
+config.json
+tpl/
+logs/
+shots/
+full_ref.png
+
+# 截图一律不传（可能带 UID、用户名、桌面内容）
+*.png
+*.jpg
+*.jpeg
+
+# Python
+__pycache__/
+*.pyc
+.venv/

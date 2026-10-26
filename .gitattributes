@@ -1,0 +1,8 @@
+# bat 必须原样保存（CRLF），否则下载 ZIP 的人会踩换行解析的坑
+*.bat -text
+
+*.py text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.json text eol=lf
+.gitignore text eol=lf
