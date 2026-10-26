@@ -101,7 +101,10 @@ def get_game_window(exe: str = "HTGame.exe", title_kw: str = "异环", min_size:
     """
     wins = [w for w in list_windows() if w["w"] >= min_size and w["h"] >= min_size]
     by_exe = [w for w in wins if _exe_of_pid(w["pid"]).lower() == exe.lower()]
-    cand = by_exe or [w for w in wins if title_kw and title_kw in w["title"]]
+    # 标题兜底必须严格：浏览器标签页标题里也会出现「异环」，
+    # 用 include 判断会�� Edge 当成游戏，然后对着浏览器乱点。
+    by_title = [w for w in wins if title_kw and w["title"].strip() == title_kw.strip()]
+    cand = by_exe or by_title
     if not cand:
         return None
     win = max(cand, key=lambda w: w["w"] * w["h"])

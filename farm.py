@@ -176,6 +176,12 @@ class Bot:
     # --- 窗口 ---
     def find_window(self) -> bool:
         w = c.get_game_window(self.cfg["window"]["exe"], self.cfg["window"]["title_kw"])
+        if w:
+            exe = c._exe_of_pid(w["pid"]).lower()
+            want = self.cfg["window"]["exe"].lower()
+            if exe != want:
+                self.log(f"[X] 挑中的窗口进程是 {exe}，不是 {want}，不用它")
+                w = None
         self.win = w
         return w is not None
 
